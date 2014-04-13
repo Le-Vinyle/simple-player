@@ -21,17 +21,18 @@ function init() {
 
     bufferLoader.load();
 
-    console.log(context);
-    console.log(bufferLoader);
-
     document.querySelector('.play').addEventListener('click', playSound);
 }
 
 function playSound() {
         source = context.createBufferSource();
+        gainNode = context.createGain();
         source.buffer = bufferLoader.bufferList[1];
-        source.connect(context.destination);
+        source.connect(gainNode);
+        gainNode.connect(context.destination);
+        //source.connect(context.destination);
         source.start(0);
+        console.log('Volume = ' + gainNode.gain.value);
         document.querySelector('.stop').addEventListener('click', stopSound);
 }
 
@@ -39,19 +40,70 @@ function stopSound() {
         source.stop(0);
 }
 
+function changeVolume(element) {
+  var volume = element.value;
+  var fraction = parseInt(element.value) / parseInt(element.max);
+  // Let's use an x*x curve (x-squared) since simple linear (x) does not
+  // sound as good.
+  gainNode.gain.value = fraction * fraction;
+  console.log( fraction * fraction );
+};
+
 function finishedLoading(bufferList) {
     // Create two sources and play them both together.
-    source1 = context.createBufferSource();
-    source2 = context.createBufferSource();
-    source1.buffer = bufferList[0];
-    source2.buffer = bufferList[1];
+    // source1 = context.createBufferSource();
+    // source2 = context.createBufferSource();
+    // source1.buffer = bufferList[0];
+    // source2.buffer = bufferList[1];
 
-    source1.connect(context.destination);
-    source2.connect(context.destination);
+    // source1.connect(context.destination);
+    // source2.connect(context.destination);
     //source1.start(0);
     //source2.start(0);
 
 }
+
+/* ****************
+VOLUME
+**************** */
+
+function VolumeSample() {
+  loadSounds(this, {
+    buffer: 'techno.wav'
+  });
+  this.isPlaying = false;
+};
+
+VolumeSample.prototype.play = function() {
+  this.gainNode = context.createGain();
+  this.source = context.createBufferSource();
+  this.source.buffer = this.buffer;
+
+  // Connect source to a gain node
+  this.source.connect(this.gainNode);
+  // Connect gain node to destination
+  this.gainNode.connect(context.destination);
+  // Start playback in a loop
+  this.source.loop = true;
+  this.source[this.source.start ? 'start' : 'noteOn'](0);
+};
+
+VolumeSample.prototype.changeVolume = function(element) {
+  var volume = element.value;
+  var fraction = parseInt(element.value) / parseInt(element.max);
+  // Let's use an x*x curve (x-squared) since simple linear (x) does not
+  // sound as good.
+  this.gainNode.gain.value = fraction * fraction;
+};
+
+VolumeSample.prototype.stop = function() {
+  this.source[this.source.stop ? 'stop' : 'noteOff'](0);
+};
+
+VolumeSample.prototype.toggle = function() {
+  this.isPlaying ? this.stop() : this.play();
+  this.isPlaying = !this.isPlaying;
+};
 
 
 /* ***************************************************
