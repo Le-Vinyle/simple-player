@@ -31,7 +31,9 @@ function playSound() {
         source.connect(gainNode);
         gainNode.connect(context.destination);
         //source.connect(context.destination);
-        source.start(0);
+        console.log(source);
+        //console.log(source.buffer);
+        source.start(0, 15);
         console.log('Volume = ' + gainNode.gain.value);
         document.querySelector('.stop').addEventListener('click', stopSound);
 }
